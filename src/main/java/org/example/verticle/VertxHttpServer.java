@@ -18,6 +18,7 @@ import org.example.entity.Book;
 import org.example.request.CreateBookRequest;
 import org.example.request.EditBookRequest;
 import org.example.service.BookService;
+import org.example.service.impl.BookServiceImpl;
 
 import static io.vertx.core.http.HttpMethod.POST;
 
@@ -79,7 +80,8 @@ public class VertxHttpServer extends AbstractVerticle {
             book.setAuthor(request.getAuthor());
             book.setCategory(request.getCategory());
 
-            BookService bookService = FactoryService.getInstance(BookService.class);
+//            BookService bookService = FactoryService.getInstance(BookService.class);
+            BookService bookService = new BookServiceImpl();
             bookService.edit(book).onSuccess(book1 -> ctx.response().end(book1.toString()));
         });
 

@@ -11,21 +11,30 @@ import org.example.supperinterface.Table;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 @Slf4j
-public abstract class AbstractRepository<T, ID> implements Repository<T, ID> {
+public class AbstractRepository<T, ID> implements Repository<T, ID> {
 
     private final PgPool pgPool;
     private final String table;
     private final List<String> columns;
 
     {
-        ParameterizedType parameterizedType = (ParameterizedType) this.getClass().getGenericSuperclass();
-        Class<?> clazz = (Class<?>) parameterizedType.getActualTypeArguments()[0];
+        System.out.println("Start");
+        Class<?> clazz;
+        Type type = this.getClass().getGenericSuperclass();
+
+        if (type instanceof Class)
+            clazz = (Class<?>) type;
+        else {
+            ParameterizedType parameterizedType = (ParameterizedType) this.getClass().getGenericSuperclass();
+            clazz = (Class<?>) parameterizedType.getActualTypeArguments()[0];
+        }
 
         pgPool = PostgreSqlConfig.getPgPool();
         table = clazz.getDeclaredAnnotation(Table.class).value();
@@ -37,6 +46,7 @@ public abstract class AbstractRepository<T, ID> implements Repository<T, ID> {
             Column column = field.getDeclaredAnnotation(Column.class);
             columns.add(column.value());
         }
+        System.out.println("Stop");
     }
 
     private Tuple entityToTuple(T entity) {

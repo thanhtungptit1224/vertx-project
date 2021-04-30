@@ -2,6 +2,7 @@ package org.example.verticle;
 
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
+import org.example.service.impl.BookServiceImpl;
 import org.example.supperinterface.Service;
 import org.reflections.Reflections;
 import org.reflections.scanners.SubTypesScanner;
@@ -23,8 +24,10 @@ public class FactoryService extends AbstractVerticle {
                 .setScanners(new SubTypesScanner(), new TypeAnnotationsScanner())
         );
 
-        for (Class<?> clazz : reflections.getTypesAnnotatedWith(Service.class))
+        for (Class<?> clazz : reflections.getTypesAnnotatedWith(Service.class)) {
+            BookServiceImpl a = (BookServiceImpl) clazz.newInstance();
             SERVICE_FACTORY.put(clazz.getInterfaces()[0].getSimpleName(), clazz.newInstance());
+        }
 
         startPromise.complete();
     }
