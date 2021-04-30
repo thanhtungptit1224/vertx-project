@@ -1,6 +1,7 @@
 package org.example.repository.impl;
 
 import io.vertx.core.Future;
+import io.vertx.pgclient.PgPool;
 import io.vertx.sqlclient.Tuple;
 import lombok.extern.slf4j.Slf4j;
 import org.example.config.PostgreSqlConfig;
@@ -18,7 +19,7 @@ import java.util.stream.IntStream;
 @Slf4j
 public abstract class AbstractRepository<T, ID> implements Repository<T, ID> {
 
-    private final PostgreSqlConfig db;
+    private final PgPool pgPool;
     private final String table;
     private final List<String> columns;
 
@@ -26,10 +27,8 @@ public abstract class AbstractRepository<T, ID> implements Repository<T, ID> {
         ParameterizedType parameterizedType = (ParameterizedType) this.getClass().getGenericSuperclass();
         Class<?> clazz = (Class<?>) parameterizedType.getActualTypeArguments()[0];
 
-        System.out.println("Start initial abstract repository: " + clazz.getName());
-
-        db = PostgreSqlConfig.getInstance();
-        table = clazz.getAnnotation(Table.class).value();
+        pgPool = PostgreSqlConfig.getPgPool();
+        table = clazz.getDeclaredAnnotation(Table.class).value();
         columns = new ArrayList<>();
 
         for (Field field : clazz.getDeclaredFields()) {
@@ -38,8 +37,6 @@ public abstract class AbstractRepository<T, ID> implements Repository<T, ID> {
             Column column = field.getDeclaredAnnotation(Column.class);
             columns.add(column.value());
         }
-
-        System.out.println("Initial abstract repository success: " + clazz.getName());
     }
 
     private Tuple entityToTuple(T entity) {
@@ -87,7 +84,7 @@ public abstract class AbstractRepository<T, ID> implements Repository<T, ID> {
 
     @Override
     public Future<T> save(T entity) {
-        return db.getClient()
+        return pgPool
                 .preparedQuery(insert())
                 .execute(entityToTuple(entity))
                 .map(rows -> {

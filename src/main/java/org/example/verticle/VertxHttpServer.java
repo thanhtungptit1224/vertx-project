@@ -1,4 +1,4 @@
-package org.example;
+package org.example.verticle;
 
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
@@ -19,7 +19,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.example.entity.Book;
 import org.example.request.CreateBookRequest;
 import org.example.service.BookService;
-import org.example.service.BookServiceImpl;
 
 import static io.vertx.core.http.HttpMethod.POST;
 
@@ -76,7 +75,8 @@ public class VertxHttpServer extends AbstractVerticle {
             book.setAuthor(request.getAuthor());
             book.setCategory(request.getCategory());
 
-            BookService bookService = BookServiceImpl.getInstance();
+//            BookService bookService = BookServiceImpl.getInstance();
+            BookService bookService = FactoryService.getInstance(BookService.class);
             bookService.create(book).onSuccess(book1 -> ctx.response().end(book1.toString()));
         });
 
