@@ -78,14 +78,23 @@ public abstract class AbstractRepository<T, ID> implements Repository<T, ID> {
         return "(" + IntStream.range(1, size).mapToObj(value -> "$" + value).collect(Collectors.joining(",")) + ")";
     }
 
-    private String insert() {
+    private String insertQuery() {
         return "INSERT INTO " + table + columnsClause(columns) + " VALUES" + valuesClause(columns.size() + 1) + " RETURNING id";
+    }
+
+    private String updateQuery() {
+        List<String> condition = new ArrayList<>();
+        int index = 1;
+        for (String column : columns)
+            condition.add(column + " = " + "$" + index++);
+
+        return "UPDATE " + table + " SET " + String.join(", ", condition) + " WHERE id=$" + index;
     }
 
     @Override
     public Future<T> save(T entity) {
         return pgPool
-                .preparedQuery(insert())
+                .preparedQuery(insertQuery())
                 .execute(entityToTuple(entity))
                 .map(rows -> {
                     updateId(entity, rows.iterator().next().getLong("id"));
@@ -94,8 +103,23 @@ public abstract class AbstractRepository<T, ID> implements Repository<T, ID> {
     }
 
     @Override
-    public T update(T entity) {
-        return null;
+    public Future<T> update(T entity) {
+        Long id = null;
+        try {
+            Field idField = entity.getClass().getDeclaredField("id");
+            idField.setAccessible(true);
+            id = (Long) idField.get(entity);
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            e.printStackTrace();
+        }
+
+        Tuple tuple = entityToTuple(entity);
+        tuple.addValue(id);
+
+        return pgPool
+                .preparedQuery(updateQuery())
+                .execute(tuple)
+                .map(rows -> entity);
     }
 
     @Override

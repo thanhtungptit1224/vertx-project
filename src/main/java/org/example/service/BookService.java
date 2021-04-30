@@ -5,4 +5,5 @@ import org.example.entity.Book;
 
 public interface BookService extends BaseService {
      Future<Book> create(Book book);
+     Future<Book> edit(Book book);
 }

@@ -5,7 +5,7 @@ import io.vertx.core.Future;
 public interface Repository<T, ID> {
     Future<T> save(T entity);
 
-    T update(T entity);
+    Future<T> update(T entity);
 
     void delete(ID id);
 

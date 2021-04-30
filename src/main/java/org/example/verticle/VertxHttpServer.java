@@ -10,14 +10,13 @@ import io.vertx.ext.auth.jwt.JWTAuth;
 import io.vertx.ext.auth.jwt.JWTAuthOptions;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.Router;
-import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.JWTAuthHandler;
 import io.vertx.ext.web.handler.StaticHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.example.entity.Book;
 import org.example.request.CreateBookRequest;
+import org.example.request.EditBookRequest;
 import org.example.service.BookService;
 
 import static io.vertx.core.http.HttpMethod.POST;
@@ -49,21 +48,14 @@ public class VertxHttpServer extends AbstractVerticle {
             routingContext.end();
         });
 
-
         router.get("/api/token").handler(ctx -> {
             ctx.response().putHeader("Content-Type", "text/plain");
             ctx.response().end(getToken());
         });
 
-//        router.route("/api/*").handler(CookieHandler.create());
-//        router.route("/api/*").handler(SessionHandler.create(LocalSessionStore.create(vertx)));
-//        router.route("/api/*").handler(UserSessionHandler.create(authProvider()));
-
         router.route("/api/*").handler(JWTAuthHandler.create(jwtAuthProvider()));
-//        router.route("/api/*").handler(RedirectAuthHandler.create(authProvider(), "/assets/login.html"));
-//        router.post("/login").handler(FormLoginHandler.create(authProvider()));
 
-        router.post("/api/wine").handler(this::handlerPost);
+        router.post("/api/wine").handler(null);
         router.get("/api/wine/:id").handler(routingContext -> {routingContext.response().end("Get Wine. Pass Jwt");});
         router.put("/api/wine/:id").handler(null);
         router.delete("/api/wine/:id").handler(null);
@@ -75,9 +67,20 @@ public class VertxHttpServer extends AbstractVerticle {
             book.setAuthor(request.getAuthor());
             book.setCategory(request.getCategory());
 
-//            BookService bookService = BookServiceImpl.getInstance();
             BookService bookService = FactoryService.getInstance(BookService.class);
             bookService.create(book).onSuccess(book1 -> ctx.response().end(book1.toString()));
+        });
+
+        router.put("/api/book").handler(ctx -> {
+            EditBookRequest request = ctx.getBodyAsJson().mapTo(EditBookRequest.class);
+            Book book = new Book();
+            book.setId(request.getId());
+            book.setName(request.getName());
+            book.setAuthor(request.getAuthor());
+            book.setCategory(request.getCategory());
+
+            BookService bookService = FactoryService.getInstance(BookService.class);
+            bookService.edit(book).onSuccess(book1 -> ctx.response().end(book1.toString()));
         });
 
         router.get("/logout").handler(context -> {
@@ -135,24 +138,6 @@ public class VertxHttpServer extends AbstractVerticle {
         bodyHandler.setBodyLimit(2048); // byte
         bodyHandler.setMergeFormAttributes(false); // default true
         return bodyHandler;
-    }
-
-    private void handlerPost(RoutingContext routingContext) {
-        JsonObject body = routingContext.getBodyAsJson();
-        System.out.println("This is body: " + body);
-
-//        Set<Cookie> cookie = routingContext.cookies();
-//        System.out.println("This is cookie: " + cookie);
-//
-//        User user = routingContext.user(); // If authentication or authorization
-//        System.out.println("This is user: " + user.principal());
-//
-//        routingContext.addCookie(Cookie.cookie("cookie-name", "cookie-value"));
-
-        Session session = routingContext.session();
-        System.out.println("This is session: " + session.id());
-
-        routingContext.response().end("LOL");
     }
 
     private void exec(HttpServerRequest httpServerRequest) {

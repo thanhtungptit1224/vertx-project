@@ -17,4 +17,8 @@ public final class BookServiceImpl extends BaseServiceImpl implements BookServic
         return repository.save(book);
     }
 
+    @Override
+    public Future<Book> edit(Book book) {
+        return repository.update(book);
+    }
 }
