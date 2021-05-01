@@ -5,37 +5,24 @@ import io.vertx.pgclient.PgPool;
 import io.vertx.sqlclient.Tuple;
 import lombok.extern.slf4j.Slf4j;
 import org.example.config.PostgreSqlConfig;
-import org.example.repository.Repository;
+import org.example.repository.BaseRepository;
 import org.example.supperinterface.Column;
 import org.example.supperinterface.Table;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 @Slf4j
-public class AbstractRepository<T, ID> implements Repository<T, ID> {
+public class BaseRepositoryImpl<T, ID> implements BaseRepository<T, ID> {
 
     private final PgPool pgPool;
     private final String table;
     private final List<String> columns;
 
-    {
-        System.out.println("Start");
-        Class<?> clazz;
-        Type type = this.getClass().getGenericSuperclass();
-
-        if (type instanceof Class)
-            clazz = (Class<?>) type;
-        else {
-            ParameterizedType parameterizedType = (ParameterizedType) this.getClass().getGenericSuperclass();
-            clazz = (Class<?>) parameterizedType.getActualTypeArguments()[0];
-        }
-
+    public BaseRepositoryImpl(Class<T> clazz) {
         pgPool = PostgreSqlConfig.getPgPool();
         table = clazz.getDeclaredAnnotation(Table.class).value();
         columns = new ArrayList<>();
@@ -46,7 +33,6 @@ public class AbstractRepository<T, ID> implements Repository<T, ID> {
             Column column = field.getDeclaredAnnotation(Column.class);
             columns.add(column.value());
         }
-        System.out.println("Stop");
     }
 
     private Tuple entityToTuple(T entity) {

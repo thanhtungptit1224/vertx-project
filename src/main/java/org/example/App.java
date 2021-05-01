@@ -2,6 +2,7 @@ package org.example;
 
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
+import org.example.verticle.FactoryService;
 import org.example.verticle.VertxHttpServer;
 
 public class App {
@@ -47,11 +48,11 @@ public class App {
                 System.out.println("Deploy VertxHttpServer Fail: " + stringAsyncResult);
         });
 
-//        vertx.deployVerticle(new FactoryService(), stringAsyncResult -> {
-//            if (stringAsyncResult.succeeded())
-//                System.out.println("Deploy FactoryService Success: " + stringAsyncResult);
-//            else
-//                System.out.println("Deploy FactoryService Fail: " + stringAsyncResult);
-//        });
+        vertx.deployVerticle(new FactoryService(), stringAsyncResult -> {
+            if (stringAsyncResult.succeeded())
+                System.out.println("Deploy FactoryService Success: " + stringAsyncResult);
+            else
+                System.out.println("Deploy FactoryService Fail: " + stringAsyncResult);
+        });
     }
 }

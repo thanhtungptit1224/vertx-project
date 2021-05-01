@@ -2,7 +2,7 @@ package org.example.repository;
 
 import io.vertx.core.Future;
 
-public interface Repository<T, ID> {
+public interface BaseRepository<T, ID> {
     Future<T> save(T entity);
 
     Future<T> update(T entity);

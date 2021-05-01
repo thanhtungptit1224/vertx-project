@@ -1,22 +1,25 @@
 package org.example.service.impl;
 
 import io.vertx.core.Future;
-import org.example.repository.Repository;
-import org.example.repository.impl.AbstractRepository;
+import org.example.repository.BaseRepository;
+import org.example.repository.impl.BaseRepositoryImpl;
 import org.example.service.BaseService;
 
 public class BaseServiceImpl<T, ID> implements BaseService<T, ID> {
+    protected final BaseRepository<T, ID> baseRepository;
 
-    protected final Repository<T, ID> repository = new AbstractRepository<>();
+    protected BaseServiceImpl(Class<T> clazz) {
+        this.baseRepository = new BaseRepositoryImpl<>(clazz);
+    }
 
     @Override
     public Future<T> create(T entity) {
-        return repository.save(entity);
+        return baseRepository.save(entity);
     }
 
     @Override
     public Future<T> edit(T entity) {
-        return repository.update(entity);
+        return baseRepository.update(entity);
     }
 
     @Override

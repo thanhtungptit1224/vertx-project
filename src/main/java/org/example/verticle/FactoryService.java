@@ -10,6 +10,8 @@ import org.reflections.scanners.TypeAnnotationsScanner;
 import org.reflections.util.ClasspathHelper;
 import org.reflections.util.ConfigurationBuilder;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.ParameterizedType;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -25,8 +27,9 @@ public class FactoryService extends AbstractVerticle {
         );
 
         for (Class<?> clazz : reflections.getTypesAnnotatedWith(Service.class)) {
-            BookServiceImpl a = (BookServiceImpl) clazz.newInstance();
-            SERVICE_FACTORY.put(clazz.getInterfaces()[0].getSimpleName(), clazz.newInstance());
+            Class<?> entityClass = (Class<?>) ((ParameterizedType) clazz.getGenericSuperclass()).getActualTypeArguments()[0];
+            BookServiceImpl a = (BookServiceImpl) clazz.getDeclaredConstructor(Class.class).newInstance(entityClass);
+            SERVICE_FACTORY.put(clazz.getInterfaces()[0].getSimpleName(), a);
         }
 
         startPromise.complete();
