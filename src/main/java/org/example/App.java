@@ -2,8 +2,8 @@ package org.example;
 
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
-import org.example.verticle.FactoryService;
-import org.example.verticle.VertxHttpServer;
+import org.example.verticle.ServiceFactory;
+import org.example.verticle.HttpServer;
 
 public class App {
     public static void main(String[] args) throws InterruptedException {
@@ -41,14 +41,14 @@ public class App {
 //            System.out.println("The result is: " + res.result());
 //        });
 
-        vertx.deployVerticle(new VertxHttpServer(), stringAsyncResult -> {
+        vertx.deployVerticle(new HttpServer(), stringAsyncResult -> {
             if (stringAsyncResult.succeeded())
                 System.out.println("Deploy VertxHttpServer Success: " + stringAsyncResult);
             else
                 System.out.println("Deploy VertxHttpServer Fail: " + stringAsyncResult);
         });
 
-        vertx.deployVerticle(new FactoryService(), stringAsyncResult -> {
+        vertx.deployVerticle(new ServiceFactory(), stringAsyncResult -> {
             if (stringAsyncResult.succeeded())
                 System.out.println("Deploy FactoryService Success: " + stringAsyncResult);
             else

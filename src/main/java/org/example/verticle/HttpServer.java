@@ -22,7 +22,7 @@ import org.example.service.BookService;
 import static io.vertx.core.http.HttpMethod.POST;
 
 @Slf4j
-public class VertxHttpServer extends AbstractVerticle {
+public class HttpServer extends AbstractVerticle {
 
     @Override
     public void start(Promise<Void> startFuture) {
@@ -67,7 +67,7 @@ public class VertxHttpServer extends AbstractVerticle {
             book.setAuthor(request.getAuthor());
             book.setCategory(request.getCategory());
 
-            BookService bookService = FactoryService.getInstance(BookService.class);
+            BookService bookService = ServiceFactory.getInstance(BookService.class);
             bookService.create(book).onSuccess(book1 -> ctx.response().end(book1.toString()));
         });
 
@@ -79,7 +79,7 @@ public class VertxHttpServer extends AbstractVerticle {
             book.setAuthor(request.getAuthor());
             book.setCategory(request.getCategory());
 
-            BookService bookService = FactoryService.getInstance(BookService.class);
+            BookService bookService = ServiceFactory.getInstance(BookService.class);
 //            BookService bookService = new BookServiceImpl(Book.class);
             bookService.edit(book).onSuccess(book1 -> ctx.response().end(book1.toString()));
         });

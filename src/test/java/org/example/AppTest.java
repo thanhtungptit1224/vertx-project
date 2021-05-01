@@ -3,6 +3,7 @@ package org.example;
 import io.vertx.core.Vertx;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
+import org.example.test.ConsumerVerticle;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;

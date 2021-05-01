@@ -10,12 +10,11 @@ import org.reflections.scanners.TypeAnnotationsScanner;
 import org.reflections.util.ClasspathHelper;
 import org.reflections.util.ConfigurationBuilder;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.ParameterizedType;
 import java.util.HashMap;
 import java.util.Map;
 
-public class FactoryService extends AbstractVerticle {
+public class ServiceFactory extends AbstractVerticle {
 
     private static final Map<String, Object> SERVICE_FACTORY = new HashMap<>();
 

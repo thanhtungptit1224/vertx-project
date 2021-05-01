@@ -1,4 +1,4 @@
-package org.example;
+package org.example.test;
 
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
