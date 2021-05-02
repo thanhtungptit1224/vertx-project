@@ -25,6 +25,7 @@ public class ServiceFactory extends AbstractVerticle {
                 .setScanners(new SubTypesScanner(), new TypeAnnotationsScanner())
         );
 
+        //todo
         for (Class<?> clazz : reflections.getTypesAnnotatedWith(Service.class)) {
             Class<?> entityClass = (Class<?>) ((ParameterizedType) clazz.getGenericSuperclass()).getActualTypeArguments()[0];
             BookServiceImpl a = (BookServiceImpl) clazz.getDeclaredConstructor(Class.class).newInstance(entityClass);

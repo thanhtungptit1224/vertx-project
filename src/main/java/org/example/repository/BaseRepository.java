@@ -1,6 +1,9 @@
 package org.example.repository;
 
 import io.vertx.core.Future;
+import org.example.specification.Specification;
+
+import java.util.List;
 
 public interface BaseRepository<T, ID> {
     Future<T> save(T entity);
@@ -11,8 +14,8 @@ public interface BaseRepository<T, ID> {
 
     T findById(ID id);
 
-//    Future<T> find(Query<T> query);
-//
+    Future<List<T>> find(Specification specification);
+
 //    Future<List<T>> findAll(Query<T> query);
 //
 //    Future<Page<T>> findAll(Query<T> query, PageAble pageAble);

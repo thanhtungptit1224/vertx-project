@@ -4,6 +4,9 @@ import io.vertx.core.Future;
 import org.example.repository.BaseRepository;
 import org.example.repository.impl.BaseRepositoryImpl;
 import org.example.service.BaseService;
+import org.example.specification.Specification;
+
+import java.util.List;
 
 public class BaseServiceImpl<T, ID> implements BaseService<T, ID> {
     protected final BaseRepository<T, ID> baseRepository;
@@ -30,5 +33,10 @@ public class BaseServiceImpl<T, ID> implements BaseService<T, ID> {
     @Override
     public T findById(ID id) {
         return null;
+    }
+
+    @Override
+    public Future<List<T>> search(Specification specification) {
+        return baseRepository.find(specification);
     }
 }

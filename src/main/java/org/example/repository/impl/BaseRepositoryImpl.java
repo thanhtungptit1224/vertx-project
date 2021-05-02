@@ -2,36 +2,48 @@ package org.example.repository.impl;
 
 import io.vertx.core.Future;
 import io.vertx.pgclient.PgPool;
+import io.vertx.sqlclient.Row;
 import io.vertx.sqlclient.Tuple;
 import lombok.extern.slf4j.Slf4j;
 import org.example.config.PostgreSqlConfig;
 import org.example.repository.BaseRepository;
+import org.example.specification.Specification;
 import org.example.supperinterface.Column;
 import org.example.supperinterface.Table;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 @Slf4j
 public class BaseRepositoryImpl<T, ID> implements BaseRepository<T, ID> {
 
+    private final Class<T> clazz;
     private final PgPool pgPool;
     private final String table;
     private final List<String> columns;
+    private final List<String> fields;
+    private final Map<String, String> fieldColumn;
 
     public BaseRepositoryImpl(Class<T> clazz) {
-        pgPool = PostgreSqlConfig.getPgPool();
-        table = clazz.getDeclaredAnnotation(Table.class).value();
-        columns = new ArrayList<>();
+        this.clazz = clazz;
+        this.pgPool = PostgreSqlConfig.getPgPool();
+        this.table = clazz.getDeclaredAnnotation(Table.class).value();
+        this.columns = new ArrayList<>();
+        this.fields = new ArrayList<>();
+        this.fieldColumn = new HashMap<>();
 
-        for (Field field : clazz.getDeclaredFields()) {
+        for (Field field : this.clazz.getDeclaredFields()) {
             if (field.getName().equals("id"))
                 continue;
             Column column = field.getDeclaredAnnotation(Column.class);
-            columns.add(column.value());
+            this.columns.add(column.value());
+            this.fields.add(field.getName());
+            this.fieldColumn.put(field.getName(), column.value());
         }
     }
 
@@ -56,7 +68,7 @@ public class BaseRepositoryImpl<T, ID> implements BaseRepository<T, ID> {
         return tuple;
     }
 
-    private void updateId(T entity, Long id) {
+    private void updateId(T entity, Object id) {
         try {
             Field idField = entity.getClass().getDeclaredField("id");
             idField.setAccessible(true);
@@ -64,6 +76,38 @@ public class BaseRepositoryImpl<T, ID> implements BaseRepository<T, ID> {
         } catch (NoSuchFieldException | IllegalAccessException e) {
             e.printStackTrace();
         }
+    }
+
+    private Object getId(T entity) {
+        try {
+            Field idField = entity.getClass().getDeclaredField("id");
+            idField.setAccessible(true);
+
+            return idField.get(entity);
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    private T rowToEntity(Row row) {
+        try {
+            T entity = this.clazz.newInstance();
+
+            for (Map.Entry<String, String> entry : fieldColumn.entrySet()) {
+                Field field = this.clazz.getDeclaredField(entry.getKey());
+                field.setAccessible(true);
+                field.set(entity, row.getValue(entry.getValue()));
+            }
+
+            Object id = row.getValue("id");
+            updateId(entity, id);
+
+            return entity;
+        } catch (Exception e) {
+            log.info("Error When Getting Entity From Row: {}", row, e);
+        }
+        return null;
     }
 
     private String columnsClause(List<String> columns) {
@@ -100,17 +144,8 @@ public class BaseRepositoryImpl<T, ID> implements BaseRepository<T, ID> {
 
     @Override
     public Future<T> update(T entity) {
-        Long id = null;
-        try {
-            Field idField = entity.getClass().getDeclaredField("id");
-            idField.setAccessible(true);
-            id = (Long) idField.get(entity);
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-            e.printStackTrace();
-        }
-
         Tuple tuple = entityToTuple(entity);
-        tuple.addValue(id);
+        tuple.addValue(getId(entity));
 
         return pgPool
                 .preparedQuery(updateQuery())
@@ -126,5 +161,27 @@ public class BaseRepositoryImpl<T, ID> implements BaseRepository<T, ID> {
     @Override
     public T findById(ID id) {
         return null;
+    }
+
+    @Override
+    public Future<List<T>> find(Specification specification) {
+        String selectClause = "SELECT * FROM " + table;
+        if (!specification.getCondition().isEmpty())
+            selectClause += " WHERE " + String.join(" AND ", specification.getCondition());
+        System.out.println("Select query: " + selectClause);
+        return pgPool
+                .query(selectClause)
+                .execute()
+                .map(rows -> {
+                    System.out.println(rows.size());
+                    System.out.println(rows.rowCount());
+                    List<T> data = new ArrayList<>();
+                    for (Row row : rows) {
+                        T entity = rowToEntity(row);
+                        if (entity != null)
+                            data.add(entity);
+                    }
+                    return data;
+                });
     }
 }
