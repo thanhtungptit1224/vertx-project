@@ -12,10 +12,7 @@ import org.example.supperinterface.Column;
 import org.example.supperinterface.Table;
 
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -25,24 +22,18 @@ public class BaseRepositoryImpl<T, ID> implements BaseRepository<T, ID> {
     private final Class<T> clazz;
     private final PgPool pgPool;
     private final String table;
-    private final List<String> columns;
-    private final List<String> fields;
-    private final Map<String, String> fieldColumn;
+    private final Map<String, String> fieldColumn; // not contain id
 
     public BaseRepositoryImpl(Class<T> clazz) {
         this.clazz = clazz;
         this.pgPool = PostgreSqlConfig.getPgPool();
         this.table = clazz.getDeclaredAnnotation(Table.class).value();
-        this.columns = new ArrayList<>();
-        this.fields = new ArrayList<>();
         this.fieldColumn = new HashMap<>();
 
         for (Field field : this.clazz.getDeclaredFields()) {
             if (field.getName().equals("id"))
                 continue;
             Column column = field.getDeclaredAnnotation(Column.class);
-            this.columns.add(column.value());
-            this.fields.add(field.getName());
             this.fieldColumn.put(field.getName(), column.value());
         }
     }
@@ -110,7 +101,7 @@ public class BaseRepositoryImpl<T, ID> implements BaseRepository<T, ID> {
         return null;
     }
 
-    private String columnsClause(List<String> columns) {
+    private String columnsClause(Collection<String> columns) {
         return "(" + String.join(",", columns) + ")";
     }
 
@@ -119,13 +110,13 @@ public class BaseRepositoryImpl<T, ID> implements BaseRepository<T, ID> {
     }
 
     private String insertQuery() {
-        return "INSERT INTO " + table + columnsClause(columns) + " VALUES" + valuesClause(columns.size() + 1) + " RETURNING id";
+        return "INSERT INTO " + table + columnsClause(fieldColumn.values()) + " VALUES" + valuesClause(fieldColumn.size() + 1) + " RETURNING id";
     }
 
     private String updateQuery() {
         List<String> condition = new ArrayList<>();
         int index = 1;
-        for (String column : columns)
+        for (String column : fieldColumn.values())
             condition.add(column + " = " + "$" + index++);
 
         return "UPDATE " + table + " SET " + String.join(", ", condition) + " WHERE id=$" + index;
@@ -168,7 +159,6 @@ public class BaseRepositoryImpl<T, ID> implements BaseRepository<T, ID> {
         String selectClause = "SELECT * FROM " + table;
         if (!specification.getCondition().isEmpty())
             selectClause += " WHERE " + String.join(" AND ", specification.getCondition());
-        System.out.println("Select query: " + selectClause);
         return pgPool
                 .query(selectClause)
                 .execute()
