@@ -27,12 +27,12 @@ public class BaseServiceImpl<T, ID> implements BaseService<T, ID> {
 
     @Override
     public void delete(ID id) {
-
+        baseRepository.delete(id);
     }
 
     @Override
-    public T findById(ID id) {
-        return null;
+    public Future<T> findById(ID id) {
+        return baseRepository.findById(id);
     }
 
     @Override

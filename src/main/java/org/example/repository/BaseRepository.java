@@ -12,7 +12,7 @@ public interface BaseRepository<T, ID> {
 
     void delete(ID id);
 
-    T findById(ID id);
+    Future<T> findById(ID id);
 
     Future<List<T>> find(Specification specification);
 

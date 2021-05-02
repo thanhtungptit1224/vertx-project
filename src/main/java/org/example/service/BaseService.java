@@ -12,7 +12,7 @@ public interface BaseService<T, ID> {
 
     void delete(ID id);
 
-    T findById(ID id);
+    Future<T> findById(ID id);
 
     Future<List<T>> search(Specification specification);
 }
