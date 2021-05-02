@@ -163,8 +163,6 @@ public class BaseRepositoryImpl<T, ID> implements BaseRepository<T, ID> {
                 .query(selectClause)
                 .execute()
                 .map(rows -> {
-                    System.out.println(rows.size());
-                    System.out.println(rows.rowCount());
                     List<T> data = new ArrayList<>();
                     for (Row row : rows) {
                         T entity = rowToEntity(row);

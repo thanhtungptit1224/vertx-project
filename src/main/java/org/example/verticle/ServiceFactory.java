@@ -2,7 +2,6 @@ package org.example.verticle;
 
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
-import org.example.service.impl.BookServiceImpl;
 import org.example.supperinterface.Service;
 import org.reflections.Reflections;
 import org.reflections.scanners.SubTypesScanner;
@@ -25,11 +24,10 @@ public class ServiceFactory extends AbstractVerticle {
                 .setScanners(new SubTypesScanner(), new TypeAnnotationsScanner())
         );
 
-        //todo
         for (Class<?> clazz : reflections.getTypesAnnotatedWith(Service.class)) {
             Class<?> entityClass = (Class<?>) ((ParameterizedType) clazz.getGenericSuperclass()).getActualTypeArguments()[0];
-            BookServiceImpl a = (BookServiceImpl) clazz.getDeclaredConstructor(Class.class).newInstance(entityClass);
-            SERVICE_FACTORY.put(clazz.getInterfaces()[0].getSimpleName(), a);
+            Object o = clazz.getDeclaredConstructor(Class.class).newInstance(entityClass);
+            SERVICE_FACTORY.put(clazz.getInterfaces()[0].getSimpleName(), o);
         }
 
         startPromise.complete();
