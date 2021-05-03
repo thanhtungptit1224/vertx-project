@@ -128,6 +128,8 @@ public class BaseRepositoryImpl<T, ID> implements BaseRepository<T, ID> {
                 .preparedQuery(insertQuery())
                 .execute(entityToTuple(entity))
                 .map(rows -> {
+                    if (rows.rowCount() != 1)
+                        return null;
                     updateId(entity, rows.iterator().next().getLong("id"));
                     return entity;
                 });
@@ -141,7 +143,11 @@ public class BaseRepositoryImpl<T, ID> implements BaseRepository<T, ID> {
         return pgPool
                 .preparedQuery(updateQuery())
                 .execute(tuple)
-                .map(rows -> entity);
+                .map(rows -> {
+                    if (rows.rowCount() != 1)
+                        return null;
+                    return entity;
+                });
     }
 
     @Override
@@ -154,7 +160,11 @@ public class BaseRepositoryImpl<T, ID> implements BaseRepository<T, ID> {
         return pgPool
                 .query("SELECT * FROM " + table + " WHERE id = " + id)
                 .execute()
-                .map(rows -> rowToEntity(rows.iterator().next()));
+                .map(rows -> {
+                    if (rows.rowCount() != 1)
+                        return null;
+                    return rowToEntity(rows.iterator().next());
+                });
     }
 
     @Override

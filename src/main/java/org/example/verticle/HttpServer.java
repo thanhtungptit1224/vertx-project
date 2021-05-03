@@ -59,7 +59,9 @@ public class HttpServer extends AbstractVerticle {
         router.route("/api/*").handler(JWTAuthHandler.create(jwtAuthProvider()));
 
         router.post("/api/wine").handler(null);
-        router.get("/api/wine/:id").handler(routingContext -> {routingContext.response().end("Get Wine. Pass Jwt");});
+        router.get("/api/wine/:id").handler(routingContext -> {
+            routingContext.response().end("Get Wine. Pass Jwt");
+        });
         router.put("/api/wine/:id").handler(null);
         router.delete("/api/wine/:id").handler(null);
 
@@ -71,7 +73,12 @@ public class HttpServer extends AbstractVerticle {
             book.setCategory(request.getCategory());
 
             BookService bookService = ServiceFactory.getInstance(BookService.class);
-            bookService.create(book).onSuccess(book1 -> ctx.response().end(book1.toString()));
+            bookService.create(book).onSuccess(book1 -> {
+                if (book1 == null)
+                    ctx.response().setStatusCode(500).end("Internal Error");
+                else
+                    ctx.response().end(book1.toString());
+            });
         });
 
         router.put("/api/book").handler(ctx -> {
@@ -83,12 +90,22 @@ public class HttpServer extends AbstractVerticle {
             book.setCategory(request.getCategory());
 
             BookService bookService = ServiceFactory.getInstance(BookService.class);
-            bookService.edit(book).onSuccess(book1 -> ctx.response().end(book1.toString()));
+            bookService.edit(book).onSuccess(book1 -> {
+                if (book1 == null)
+                    ctx.response().setStatusCode(500).end("Internal Error");
+                else
+                    ctx.response().end(book1.toString());
+            });
         });
 
         router.get("/api/book/:id").handler(ctx -> {
             BookService bookService = ServiceFactory.getInstance(BookService.class);
-            bookService.findById(Long.valueOf(ctx.pathParam("id"))).onSuccess(book1 -> ctx.response().end(book1.toString()));
+            bookService.findById(Long.valueOf(ctx.pathParam("id"))).onSuccess(book1 -> {
+                if (book1 == null)
+                    ctx.response().setStatusCode(404).end("NotFound");
+                else
+                    ctx.response().end(book1.toString());
+            });
         });
 
         router.delete("/api/book/:id").handler(ctx -> {
