@@ -18,6 +18,8 @@ public abstract class AbstractSpecification implements Specification {
     }
 
     public void equal(String column, Object value) {
+        if (value instanceof String)
+            value = "'" + value + "'";
         condition.add(column + Expression.equal() + value);
     }
 }

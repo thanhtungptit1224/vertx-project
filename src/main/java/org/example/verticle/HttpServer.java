@@ -17,7 +17,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.example.entity.Book;
 import org.example.request.CreateBookRequest;
 import org.example.request.EditBookRequest;
+import org.example.request.SearchBookRequest;
 import org.example.service.BookService;
+import org.example.specification.BookSpecification;
+import org.example.specification.Specification;
 
 import static io.vertx.core.http.HttpMethod.POST;
 
@@ -84,13 +87,6 @@ public class HttpServer extends AbstractVerticle {
         });
 
         router.get("/api/book/:id").handler(ctx -> {
-//            SearchBookRequest request = new SearchBookRequest();
-//            request.setId(Long.valueOf(ctx.pathParam("id")));
-//            Specification specification = new BookSpecification(request);
-//
-//            BookService bookService = ServiceFactory.getInstance(BookService.class);
-//            bookService.search(specification).onSuccess(book1 -> ctx.response().end(book1.toString()));
-
             BookService bookService = ServiceFactory.getInstance(BookService.class);
             bookService.findById(Long.valueOf(ctx.pathParam("id"))).onSuccess(book1 -> ctx.response().end(book1.toString()));
         });
@@ -99,6 +95,14 @@ public class HttpServer extends AbstractVerticle {
             BookService bookService = ServiceFactory.getInstance(BookService.class);
             bookService.delete(Long.valueOf(ctx.pathParam("id")));
             ctx.response().end("OK");
+        });
+
+        router.post("/api/book/search").handler(ctx -> {
+            SearchBookRequest request = ctx.getBodyAsJson().mapTo(SearchBookRequest.class);
+            Specification specification = new BookSpecification(request);
+
+            BookService bookService = ServiceFactory.getInstance(BookService.class);
+            bookService.search(specification).onSuccess(book1 -> ctx.response().end(book1.toString()));
         });
 
         router.get("/logout").handler(context -> {
