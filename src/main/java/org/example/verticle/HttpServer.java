@@ -110,8 +110,12 @@ public class HttpServer extends AbstractVerticle {
 
         router.delete("/api/book/:id").handler(ctx -> {
             BookService bookService = ServiceFactory.getInstance(BookService.class);
-            bookService.delete(Long.valueOf(ctx.pathParam("id")));
-            ctx.response().end("OK");
+            bookService.delete(Long.valueOf(ctx.pathParam("id"))).onSuccess(id -> {
+                if (id == null)
+                    ctx.response().setStatusCode(500).end("Internal Error");
+                else
+                    ctx.response().end(id.toString());
+            });
         });
 
         router.post("/api/book/search").handler(ctx -> {

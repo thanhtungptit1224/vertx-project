@@ -151,8 +151,15 @@ public class BaseRepositoryImpl<T, ID> implements BaseRepository<T, ID> {
     }
 
     @Override
-    public void delete(ID id) {
-        pgPool.query("DELETE FROM " + table + " WHERE id = " + id).execute();
+    public Future<ID> delete(ID id) {
+        return pgPool
+                .query("DELETE FROM " + table + " WHERE id = " + id)
+                .execute()
+                .map(rows -> {
+                    if (rows.rowCount() != 1)
+                        return null;
+                    return id;
+                });
     }
 
     @Override

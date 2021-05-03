@@ -10,7 +10,7 @@ public interface BaseService<T, ID> {
 
     Future<T> edit(T entity);
 
-    void delete(ID id);
+    Future<ID> delete(ID id);
 
     Future<T> findById(ID id);
 
