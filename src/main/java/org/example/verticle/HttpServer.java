@@ -14,13 +14,7 @@ import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.JWTAuthHandler;
 import io.vertx.ext.web.handler.StaticHandler;
 import lombok.extern.slf4j.Slf4j;
-import org.example.entity.Book;
-import org.example.request.CreateBookRequest;
-import org.example.request.EditBookRequest;
-import org.example.request.SearchBookRequest;
-import org.example.service.BookService;
-import org.example.specification.BookSpecification;
-import org.example.specification.Specification;
+import org.example.handler.BookHandler;
 
 import static io.vertx.core.http.HttpMethod.POST;
 
@@ -65,66 +59,11 @@ public class HttpServer extends AbstractVerticle {
         router.put("/api/wine/:id").handler(null);
         router.delete("/api/wine/:id").handler(null);
 
-        router.post("/api/book").handler(ctx -> {
-            CreateBookRequest request = ctx.getBodyAsJson().mapTo(CreateBookRequest.class);
-            Book book = new Book();
-            book.setName(request.getName());
-            book.setAuthor(request.getAuthor());
-            book.setCategory(request.getCategory());
-
-            BookService bookService = ServiceFactory.getInstance(BookService.class);
-            bookService.create(book).onSuccess(book1 -> {
-                if (book1 == null)
-                    ctx.response().setStatusCode(500).end("Internal Error");
-                else
-                    ctx.response().end(book1.toString());
-            });
-        });
-
-        router.put("/api/book").handler(ctx -> {
-            EditBookRequest request = ctx.getBodyAsJson().mapTo(EditBookRequest.class);
-            Book book = new Book();
-            book.setId(request.getId());
-            book.setName(request.getName());
-            book.setAuthor(request.getAuthor());
-            book.setCategory(request.getCategory());
-
-            BookService bookService = ServiceFactory.getInstance(BookService.class);
-            bookService.edit(book).onSuccess(book1 -> {
-                if (book1 == null)
-                    ctx.response().setStatusCode(500).end("Internal Error");
-                else
-                    ctx.response().end(book1.toString());
-            });
-        });
-
-        router.get("/api/book/:id").handler(ctx -> {
-            BookService bookService = ServiceFactory.getInstance(BookService.class);
-            bookService.findById(Long.valueOf(ctx.pathParam("id"))).onSuccess(book1 -> {
-                if (book1 == null)
-                    ctx.response().setStatusCode(404).end("NotFound");
-                else
-                    ctx.response().end(book1.toString());
-            });
-        });
-
-        router.delete("/api/book/:id").handler(ctx -> {
-            BookService bookService = ServiceFactory.getInstance(BookService.class);
-            bookService.delete(Long.valueOf(ctx.pathParam("id"))).onSuccess(id -> {
-                if (id == null)
-                    ctx.response().setStatusCode(500).end("Internal Error");
-                else
-                    ctx.response().end(id.toString());
-            });
-        });
-
-        router.post("/api/book/search").handler(ctx -> {
-            SearchBookRequest request = ctx.getBodyAsJson().mapTo(SearchBookRequest.class);
-            Specification specification = new BookSpecification(request);
-
-            BookService bookService = ServiceFactory.getInstance(BookService.class);
-            bookService.search(specification).onSuccess(book1 -> ctx.response().end(book1.toString()));
-        });
+        router.post("/api/book").handler(BookHandler::create);
+        router.put("/api/book").handler(BookHandler::edit);
+        router.get("/api/book/:id").handler(BookHandler::get);
+        router.delete("/api/book/:id").handler(BookHandler::delete);
+        router.post("/api/book/search").handler(BookHandler::search);
 
         router.get("/logout").handler(context -> {
             context.clearUser();

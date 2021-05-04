@@ -27,7 +27,7 @@ public class BaseServiceImpl<T, ID> implements BaseService<T, ID> {
 
     @Override
     public Future<ID> delete(ID id) {
-        baseRepository.delete(id);
+        return baseRepository.delete(id);
     }
 
     @Override
